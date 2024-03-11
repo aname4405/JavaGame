@@ -1,7 +1,11 @@
 package mvc.view;
 
+import mvc.controller.CollisionChecker;
 import mvc.controller.KeyHandler;
+import mvc.model.Tile;
+import mvc.model.TileManager;
 import org.w3c.dom.ls.LSOutput;
+import mvc.model.Player;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,26 +13,44 @@ import java.awt.*;
 public class GamePanel extends JPanel implements Runnable{
 
     //SCREEN SETTINGS
-    final int originalTileSize = 16; //16x16 title
-    final int scale=3;
+    public int originalTileSize = 16; //16x16 title
+    public int scale=3;
 
-    final int tileSize = originalTileSize * scale; //48x48 title
-    final int maxScreenColumn = 16;
-    final int maxScreenRow = 12;
-    final int screenWidth = tileSize * maxScreenColumn; //768 pixels
-    final int screenHeight = tileSize * maxScreenRow; //576 pixels
+    public final int tileSize = originalTileSize * scale; //48x48 title
+    public final int maxScreenColumn = 16;
+    public final int maxScreenRow = 12;
+    public final int screenWidth = tileSize * maxScreenColumn; //768 pixels
+    public final int screenHeight = tileSize * maxScreenRow; //576 pixels
+
+    //WORLD SETTINGS
+    public final int maxWorldColumn = 50;
+    public final int maxWorldRow = 50;
+
+    public final int worldWidth = tileSize * maxWorldColumn;
+    public final int worldHeight = tileSize * maxWorldRow;
 
     //Frames Per Second FPS
     int FPS = 60;
-    //initiate keyHandler
+    //instantiate  TileManager
+
+    public TileManager tileM = new TileManager(this);
+
+    //instantiate  keyHandler
     KeyHandler keyH = new KeyHandler();
     Thread gameThread; //thread is something you can start and stop - once started it keeps program running until you stop it
     //60 frames per second this is very helpful with this. implement Runnable
 
-    //Set player's default position (palyerX, Y co-ordinates to use in paintComponent - can change the player position using these variables)
-    int playerX = 100;
-    int playerY = 100;
-    int playerSpeed = 4;
+    //instantiate CollisionChecker
+    public CollisionChecker cChecker = new CollisionChecker(this);
+
+    //instantiate player
+    public Player player = new Player(this,keyH);
+
+    //this is no longer needed as this is taken care of in player class.
+//Set player's default position (palyerX, Y co-ordinates to use in paintComponent - can change the player position using these variables)
+//    int playerX = 100;
+//    int playerY = 100;
+//    int playerSpeed = 4;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -119,18 +141,7 @@ public class GamePanel extends JPanel implements Runnable{
     //code to handle changes to player position based on key press/release:
     public void update(){
 
-        if(keyH.upPressed == true){
-            playerY -= playerSpeed;
-        }
-        else if(keyH.downPressed == true){
-            playerY += playerSpeed;
-        }
-        else if(keyH.leftPressed == true){
-            playerX -= playerSpeed;
-        }
-        else if(keyH.rightPressed == true){
-            playerX += playerSpeed;
-        }
+        player.update();
 
     }
 
@@ -142,10 +153,10 @@ public class GamePanel extends JPanel implements Runnable{
         //sophisticated controller geometry, co-ordinate transformations,
         //colour management, and text layout.
         Graphics2D g2 = (Graphics2D)g; //changes graphics g to graphics2D
-        //set colour
-        g2.setColor(Color.white);
-        //Draw a rectangle and fill it with specified colour
-        g2.fillRect(playerX, playerY, tileSize, tileSize); //x and y co-ordinates and width and height
+
+        tileM.draw(g2);
+
+        player.draw(g2);
 
         g2.dispose();//dispose() dispose of this graphics context and release any system resources that it is using.
 
